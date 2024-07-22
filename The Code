@@ -1,0 +1,78 @@
+import tkinter as tk
+from tkinter import simpledialog
+from tkinter import messagebox
+from tkinter import scrolledtext
+import random
+import string
+
+MASTER_PASSWORD = "CHOOSE THE MASTER PASSWORD HERE"  # Set your master password here
+
+def generate_pass(length: int = 12):
+    alphabet = string.ascii_letters + string.digits + string.punctuation
+    password = ''.join(random.choice(alphabet) for _ in range(length))
+    return password
+
+def save_password():
+    website = website_entry.get()
+    username = username_entry.get()
+    password = password_entry.get()
+    if not website or not username or not password:
+        messagebox.showwarning("Warning", "Please fill out all fields")
+        return
+    with open("passwords.txt", "a") as f:
+        f.write(f"Website: {website}\nUsername: {username}\nPassword: {password}\n\n")
+    website_entry.delete(0, tk.END)
+    username_entry.delete(0, tk.END)
+    password_entry.delete(0, tk.END)
+    messagebox.showinfo("Info", "Password saved successfully")
+
+def generate_and_insert():
+    generated_password = generate_pass()
+    password_entry.delete(0, tk.END)
+    password_entry.insert(0, generated_password)
+
+def view_passwords():
+    master_password = simpledialog.askstring("Master Password", "Enter the master password:", show='*')
+    if master_password == MASTER_PASSWORD:
+        try:
+            with open("passwords.txt", "r") as f:
+                passwords = f.read()
+        except FileNotFoundError:
+            passwords = "No passwords saved yet."
+        view_window = tk.Toplevel(window)
+        view_window.title("Saved Passwords")
+        text_area = scrolledtext.ScrolledText(view_window, wrap=tk.WORD, width=40, height=20)
+        text_area.insert(tk.INSERT, passwords)
+        text_area.config(state=tk.DISABLED)
+        text_area.pack(padx=10, pady=10)
+    else:
+        messagebox.showerror("Error", "Incorrect master password!")
+
+# GUI setup
+window = tk.Tk()
+window.title("Password Manager")
+
+# Labels and entries
+tk.Label(window, text="Website:").grid(row=0, column=0, padx=10, pady=5)
+website_entry = tk.Entry(window, width=30)
+website_entry.grid(row=0, column=1, padx=10, pady=5)
+
+tk.Label(window, text="Username:").grid(row=1, column=0, padx=10, pady=5)
+username_entry = tk.Entry(window, width=30)
+username_entry.grid(row=1, column=1, padx=10, pady=5)
+
+tk.Label(window, text="Password:").grid(row=2, column=0, padx=10, pady=5)
+password_entry = tk.Entry(window, width=30)
+password_entry.grid(row=2, column=1, padx=10, pady=5)
+
+# Buttons
+generate_button = tk.Button(window, text="Generate Password", command=generate_and_insert)
+generate_button.grid(row=3, column=0, padx=10, pady=5)
+
+save_button = tk.Button(window, text="Save Password", command=save_password)
+save_button.grid(row=3, column=1, padx=10, pady=5)
+
+view_button = tk.Button(window, text="View Saved Passwords", command=view_passwords)
+view_button.grid(row=4, column=0, columnspan=2, pady=10)
+
+window.mainloop()
